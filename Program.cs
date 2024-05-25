@@ -5,26 +5,16 @@ using System.Text;
 using System.Threading.Tasks;
 using MobileOperator.Models;
 using MobileOperator.Structures;
-using MobileOperator.Helpers;
 
 namespace MobileOperator
 {
     public class Program
     {
-        public static HashTable<string, SimCard> hashTable = new HashTable<string, SimCard>(100);
-        public static AVLTree<Client> avlTree = new AVLTree<Client>();
-        public static CircularLinkedList<SimCardIssue> circularList = new CircularLinkedList<SimCardIssue>();
+        public static HashTable hashTable = new HashTable();
 
         static void Main(string[] args)
         {
             Console.WriteLine("Добро пожаловать в информационную систему оператора сотовой связи!");
-            // Здесь предполагается инициализация из контекста базы данных, который вы реализуете
-            // using (var context = new ApplicationDbContext())
-            // {
-            //     context.Clients.ToList().ForEach(c => { avlTree.Add(c); });
-            //     context.SimCards.ToList().ForEach(s => { hashTable.Put(s.SimNumber, s); });
-            //     context.SimCardIssues.ToList().ForEach(i => { circularList.Insert(i); });
-            // }
 
             while (true)
             {
@@ -52,24 +42,6 @@ namespace MobileOperator
 
                 switch (choice)
                 {
-                    case "1":
-                        RegisterNewClient();
-                        break;
-                    case "2":
-                        RemoveClient();
-                        break;
-                    case "3":
-                        ViewAllClients();
-                        break;
-                    case "4":
-                        ClearAllClients();
-                        break;
-                    case "5":
-                        SearchClientByPassportNumber();
-                        break;
-                    case "6":
-                        SearchClientsByFullName();
-                        break;
                     case "7":
                         AddNewSimCard();
                         break;
@@ -88,15 +60,6 @@ namespace MobileOperator
                     case "12":
                         SearchSimCardByTariff();
                         break;
-                    case "13":
-                        RegisterSimCardIssue();
-                        break;
-                    case "14":
-                        RegisterSimCardReturn();
-                        break;
-                    case "15":
-                        ViewAllSimCardIssues();
-                        break;
                     case "0":
                         Console.WriteLine("До свидания!");
                         return;
@@ -107,79 +70,102 @@ namespace MobileOperator
             }
         }
 
-        static void RegisterNewClient()
-        {
-            // Логика регистрации нового клиента
-        }
-
-        static void RemoveClient()
-        {
-            // Логика удаления клиента
-        }
-
-        static void ViewAllClients()
-        {
-            // Логика просмотра всех клиентов
-        }
-
-        static void ClearAllClients()
-        {
-            // Логика очистки данных о клиентах
-        }
-
-        static void SearchClientByPassportNumber()
-        {
-            // Логика поиска клиента по номеру паспорта
-        }
-
-        static void SearchClientsByFullName()
-        {
-            // Логика поиска клиентов по ФИО
-        }
-
         static void AddNewSimCard()
         {
-            // Логика добавления новой SIM-карты
+            Console.Write("Введите номер SIM-карты (формат NNN-NNNNNNN): ");
+            string simNumber = Console.ReadLine();
+            Console.Write("Введите тариф: ");
+            string tariff = Console.ReadLine();
+            Console.Write("Введите год выпуска: ");
+            int releaseYear = int.Parse(Console.ReadLine());
+            Console.Write("SIM-карта доступна? (да/нет): ");
+            bool isAvailable = Console.ReadLine().ToLower() == "да";
+
+            SimCard simCard = new SimCard
+            {
+                SimNumber = simNumber,
+                Tariff = tariff,
+                ReleaseYear = releaseYear,
+                IsAvailable = isAvailable
+            };
+
+            hashTable.Put(simCard);
+            Console.WriteLine("SIM-карта успешно добавлена.");
         }
 
         static void RemoveSimCard()
         {
-            // Логика удаления SIM-карты
+            Console.Write("Введите номер SIM-карты для удаления: ");
+            string simNumber = Console.ReadLine();
+
+            SimCard removedSimCard = hashTable.RemoveSimCardByNumber(simNumber);
+            if (removedSimCard != null)
+            {
+                Console.WriteLine($"SIM-карта с номером {simNumber} успешно удалена.");
+            }
+            else
+            {
+                Console.WriteLine($"SIM-карта с номером {simNumber} не найдена.");
+            }
         }
 
         static void ViewAllSimCards()
         {
-            // Логика просмотра всех SIM-карт
+            var simCards = hashTable.GetAllSimCards();
+            if (simCards.Count > 0)
+            {
+                Console.WriteLine("Список всех SIM-карт:");
+                foreach (var simCard in simCards)
+                {
+                    Console.WriteLine($"Номер: {simCard.SimNumber}, Тариф: {simCard.Tariff}, Год выпуска: {simCard.ReleaseYear}, Доступна: {simCard.IsAvailable}");
+                }
+            }
+            else
+            {
+                Console.WriteLine("Нет доступных SIM-карт.");
+            }
         }
 
         static void ClearAllSimCards()
         {
-            // Логика очистки данных о SIM-картах
+            hashTable.Clear();
+            Console.WriteLine("Все данные о SIM-картах успешно удалены.");
         }
 
         static void SearchSimCardByNumber()
         {
-            // Логика поиска SIM-карты по номеру
+            Console.Write("Введите номер SIM-карты для поиска: ");
+            string simNumber = Console.ReadLine();
+
+            SimCard simCard = hashTable.GetSimCardByNumber(simNumber);
+            if (simCard != null)
+            {
+                Console.WriteLine($"Найденная SIM-карта: Номер: {simCard.SimNumber}, Тариф: {simCard.Tariff}, Год выпуска: {simCard.ReleaseYear}, Доступна: {simCard.IsAvailable}");
+            }
+            else
+            {
+                Console.WriteLine($"SIM-карта с номером {simNumber} не найдена.");
+            }
         }
 
         static void SearchSimCardByTariff()
         {
-            // Логика поиска SIM-карты по тарифу
-        }
+            Console.Write("Введите тариф для поиска SIM-карт: ");
+            string tariff = Console.ReadLine();
 
-        static void RegisterSimCardIssue()
-        {
-            // Логика регистрации выдачи SIM-карты клиенту
-        }
-
-        static void RegisterSimCardReturn()
-        {
-            // Логика регистрации возврата SIM-карты
-        }
-
-        static void ViewAllSimCardIssues()
-        {
-            // Логика просмотра всех данных о выдаче SIM-карт
+            var simCards = hashTable.SearchByTariff(tariff);
+            if (simCards.Count > 0)
+            {
+                Console.WriteLine($"Найденные SIM-карты с тарифом {tariff}:");
+                foreach (var simCard in simCards)
+                {
+                    Console.WriteLine($"Номер: {simCard.SimNumber}, Год выпуска: {simCard.ReleaseYear}, Доступна: {simCard.IsAvailable}");
+                }
+            }
+            else
+            {
+                Console.WriteLine($"SIM-карты с тарифом {tariff} не найдены.");
+            }
         }
     }
 }
