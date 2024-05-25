@@ -11,6 +11,7 @@ namespace MobileOperator
     public class Program
     {
         public static HashTable hashTable = new HashTable();
+        public static AVLTree avlTree = new AVLTree();
 
         static void Main(string[] args)
         {
@@ -42,6 +43,24 @@ namespace MobileOperator
 
                 switch (choice)
                 {
+                    case "1":
+                        RegisterNewClient();
+                        break;
+                    case "2":
+                        RemoveClient();
+                        break;
+                    case "3":
+                        ViewAllClients();
+                        break;
+                    case "4":
+                        ClearAllClients();
+                        break;
+                    case "5":
+                        SearchClientByPassportNumber();
+                        break;
+                    case "6":
+                        SearchClientsByFullName();
+                        break;
                     case "7":
                         AddNewSimCard();
                         break;
@@ -67,6 +86,108 @@ namespace MobileOperator
                         Console.WriteLine("Некорректный ввод. Попробуйте снова.");
                         break;
                 }
+            }
+        }
+
+        static void RegisterNewClient()
+        {
+            Console.Write("Введите номер паспорта (формат NNNN-NNNNNN): ");
+            string passportNumber = Console.ReadLine();
+            Console.Write("Введите место и дату выдачи паспорта: ");
+            string issuePlaceAndDate = Console.ReadLine();
+            Console.Write("Введите ФИО: ");
+            string fullName = Console.ReadLine();
+            Console.Write("Введите год рождения: ");
+            int birthYear = int.Parse(Console.ReadLine());
+            Console.Write("Введите адрес: ");
+            string address = Console.ReadLine();
+
+            Client client = new Client
+            {
+                PassportNumber = passportNumber,
+                IssuePlaceAndDate = issuePlaceAndDate,
+                FullName = fullName,
+                BirthYear = birthYear,
+                Address = address
+            };
+
+            avlTree.Add(client);
+            Console.WriteLine("Клиент успешно зарегистрирован.");
+        }
+
+        static void RemoveClient()
+        {
+            Console.Write("Введите номер паспорта клиента для удаления: ");
+            string passportNumber = Console.ReadLine();
+
+            Client client = avlTree.SearchByPassportNumber(passportNumber);
+            if (client != null)
+            {
+                avlTree.Remove(client);
+                Console.WriteLine($"Клиент с номером паспорта {passportNumber} успешно удалён.");
+            }
+            else
+            {
+                Console.WriteLine($"Клиент с номером паспорта {passportNumber} не найден.");
+            }
+        }
+
+        static void ViewAllClients()
+        {
+            var clients = avlTree.GetAllClients();
+            if (clients.Count > 0)
+            {
+                Console.WriteLine("Список всех клиентов:");
+                foreach (var client in clients)
+                {
+                    Console.WriteLine($"Паспорт: {client.PassportNumber}, ФИО: {client.FullName}, Адрес: {client.Address}");
+                }
+            }
+            else
+            {
+                Console.WriteLine("Нет зарегистрированных клиентов.");
+            }
+        }
+
+        static void ClearAllClients()
+        {
+            avlTree.Clear();
+            Console.WriteLine("Все данные о клиентах успешно удалены.");
+        }
+
+        static void SearchClientByPassportNumber()
+        {
+            Console.Write("Введите номер паспорта для поиска: ");
+            string passportNumber = Console.ReadLine();
+
+            Client client = avlTree.SearchByPassportNumber(passportNumber);
+            if (client != null)
+            {
+                Console.WriteLine($"Найденный клиент: Паспорт: {client.PassportNumber}, ФИО: {client.FullName}, Адрес: {client.Address}, Место и дата выдачи: {client.IssuePlaceAndDate}, Год рождения: {client.BirthYear}");
+            }
+            else
+            {
+                Console.WriteLine($"Клиент с номером паспорта {passportNumber} не найден.");
+            }
+        }
+
+        static void SearchClientsByFullName()
+        {
+            Console.Write("Введите фрагмент ФИО или адреса для поиска: ");
+            string fragment = Console.ReadLine();
+
+            var clients = avlTree.SearchByPartOfFullNameOrAddress(fragment);
+            if (clients.Count > 0)
+            {
+                Console.WriteLine("Найденные клиенты:");
+                foreach (var client in clients)
+                {
+                    Console.WriteLine($"Паспорт: {client.PassportNumber}, ФИО: {client.FullName}, Адрес: {client.Address}");
+                }
+            }
+            else
+            {
+                Console.WriteLine("Клиенты с заданным фрагментом не найдены.");
             }
         }
 
