@@ -12,9 +12,14 @@ namespace MobileOperator
     {
         public static HashTable hashTable = new HashTable();
         public static AVLTree avlTree = new AVLTree();
+        public static CircularLinkedList circularLinkedList = new CircularLinkedList();
 
         static void Main(string[] args)
         {
+            // Добавление тестовых данных
+            AddTestClients();
+            AddTestSimCards();
+
             Console.WriteLine("Добро пожаловать в информационную систему оператора сотовой связи!");
 
             while (true)
@@ -79,6 +84,15 @@ namespace MobileOperator
                     case "12":
                         SearchSimCardByTariff();
                         break;
+                    case "13":
+                        RegisterSimCardIssue();
+                        break;
+                    case "14":
+                        RegisterSimCardReturn();
+                        break;
+                    case "15":
+                        ViewAllSimCardIssues();
+                        break;
                     case "0":
                         Console.WriteLine("До свидания!");
                         return;
@@ -123,6 +137,15 @@ namespace MobileOperator
             Client client = avlTree.SearchByPassportNumber(passportNumber);
             if (client != null)
             {
+                List<string> simNumbers = circularLinkedList.RemoveByPassportNumber(passportNumber);
+                foreach (var simNumber in simNumbers)
+                {
+                    SimCard simCard = hashTable.GetSimCardByNumber(simNumber);
+                    if (simCard != null)
+                    {
+                        simCard.IsAvailable = true;
+                    }
+                }
                 avlTree.Remove(client);
                 Console.WriteLine($"Клиент с номером паспорта {passportNumber} успешно удалён.");
             }
@@ -131,6 +154,9 @@ namespace MobileOperator
                 Console.WriteLine($"Клиент с номером паспорта {passportNumber} не найден.");
             }
         }
+
+
+
 
         static void ViewAllClients()
         {
@@ -288,5 +314,160 @@ namespace MobileOperator
                 Console.WriteLine($"SIM-карты с тарифом {tariff} не найдены.");
             }
         }
+
+        static void RegisterSimCardIssue()
+        {
+            Console.Write("Введите номер паспорта: ");
+            string passportNumber = Console.ReadLine();
+            Console.Write("Введите номер SIM-карты: ");
+            string simNumber = Console.ReadLine();
+            Console.Write("Введите дату выдачи: ");
+            string issueDate = Console.ReadLine();
+            Console.Write("Введите дату окончания действия: ");
+            string expiryDate = Console.ReadLine();
+
+            // Проверка существования клиента в AVL-дереве
+            Client client = avlTree.SearchByPassportNumber(passportNumber);
+            if (client == null)
+            {
+                Console.WriteLine("Клиент с таким номером паспорта не найден.");
+                return;
+            }
+
+            // Проверка наличия SIM-карты
+            SimCard simCard = hashTable.GetSimCardByNumber(simNumber);
+            if (simCard == null || !simCard.IsAvailable)
+            {
+                Console.WriteLine("SIM-карта недоступна для выдачи.");
+                return;
+            }
+
+            SimCardIssue issue = new SimCardIssue
+            {
+                PassportNumber = passportNumber,
+                SimNumber = simNumber,
+                IssueDate = issueDate,
+                ExpiryDate = expiryDate
+            };
+
+            circularLinkedList.Add(issue);
+            simCard.IsAvailable = false;
+            Console.WriteLine("Регистрация выдачи SIM-карты успешно выполнена.");
+        }
+
+        static void RegisterSimCardReturn()
+        {
+            Console.Write("Введите номер паспорта: ");
+            string passportNumber = Console.ReadLine();
+            Console.Write("Введите номер SIM-карты: ");
+            string simNumber = Console.ReadLine();
+
+            bool result = circularLinkedList.Remove(passportNumber, simNumber);
+            if (result)
+            {
+                SimCard simCard = hashTable.GetSimCardByNumber(simNumber);
+                if (simCard != null)
+                {
+                    simCard.IsAvailable = true;
+                }
+                Console.WriteLine("Регистрация возврата SIM-карты успешно выполнена.");
+            }
+            else
+            {
+                Console.WriteLine("Не удалось найти запись о выдаче данной SIM-карты.");
+            }
+        }
+
+
+        static void ViewAllSimCardIssues()
+        {
+            var issues = circularLinkedList.GetAll();
+            if (issues.Count > 0)
+            {
+                Console.WriteLine("Список всех выдач/возвратов SIM-карт:");
+                foreach (var issue in issues)
+                {
+                    Console.WriteLine($"Паспорт: {issue.PassportNumber}, SIM-карта: {issue.SimNumber}, Дата выдачи: {issue.IssueDate}, Дата окончания действия: {issue.ExpiryDate}");
+                }
+            }
+            else
+            {
+                Console.WriteLine("Нет записей о выдаче SIM-карт.");
+            }
+        }
+
+        static void AddTestClients()
+        {
+            var clients = new List<Client>
+    {
+        new Client
+        {
+            PassportNumber = "1234-567890",
+            IssuePlaceAndDate = "Москва, 01.01.2000",
+            FullName = "Иванов Иван Иванович",
+            BirthYear = 1980,
+            Address = "ул. Пушкина, д. 10"
+        },
+        new Client
+        {
+            PassportNumber = "2345-678901",
+            IssuePlaceAndDate = "Санкт-Петербург, 02.02.2001",
+            FullName = "Петров Петр Петрович",
+            BirthYear = 1985,
+            Address = "пр. Ленина, д. 20"
+        },
+        new Client
+        {
+            PassportNumber = "3456-789012",
+            IssuePlaceAndDate = "Новосибирск, 03.03.2002",
+            FullName = "Сидоров Сидор Сидорович",
+            BirthYear = 1990,
+            Address = "ул. Советская, д. 30"
+        }
+    };
+
+            foreach (var client in clients)
+            {
+                avlTree.Add(client);
+            }
+
+            Console.WriteLine("Тестовые клиенты добавлены.");
+        }
+
+        static void AddTestSimCards()
+        {
+            var simCards = new List<SimCard>
+    {
+        new SimCard
+        {
+            SimNumber = "111-1111111",
+            Tariff = "Basic",
+            ReleaseYear = 2020,
+            IsAvailable = true
+        },
+        new SimCard
+        {
+            SimNumber = "222-2222222",
+            Tariff = "Basic",
+            ReleaseYear = 2021,
+            IsAvailable = true
+        },
+        new SimCard
+        {
+            SimNumber = "333-3333333",
+            Tariff = "Premium",
+            ReleaseYear = 2022,
+            IsAvailable = true
+        }
+    };
+
+            foreach (var simCard in simCards)
+            {
+                hashTable.Put(simCard);
+            }
+
+            Console.WriteLine("Тестовые SIM-карты добавлены.");
+        }
+
     }
 }
