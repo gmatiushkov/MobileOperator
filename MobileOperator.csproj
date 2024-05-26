@@ -44,7 +44,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Helpers\DataParser.cs" />
-    <Compile Include="Tests\HashTableTests.cs" />
     <Compile Include="Helpers\DataValidator.cs" />
     <Compile Include="Models\Client.cs" />
     <Compile Include="Models\SimCard.cs" />
@@ -58,6 +57,8 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Tests\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
