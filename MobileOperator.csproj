@@ -43,8 +43,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Helpers\DataParser.cs" />
     <Compile Include="Tests\HashTableTests.cs" />
-    <Compile Include="Helpers\Validator.cs" />
+    <Compile Include="Helpers\DataValidator.cs" />
     <Compile Include="Models\Client.cs" />
     <Compile Include="Models\SimCard.cs" />
     <Compile Include="Models\SimCardIssue.cs" />

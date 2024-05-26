@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using MobileOperator.Models;
+using MobileOperator.Processing;
 using MobileOperator.Structures;
 
 namespace MobileOperator
@@ -105,16 +106,59 @@ namespace MobileOperator
 
         static void RegisterNewClient()
         {
-            Console.Write("Введите номер паспорта (формат NNNN-NNNNNN): ");
-            string passportNumber = Console.ReadLine();
+            string passportNumber = null;
+            while (true)
+            {
+                Console.Write("Введите номер паспорта (формат NNNN-NNNNNN): ");
+                passportNumber = Console.ReadLine();
+
+                // Проверка на корректность формата номера паспорта
+                if (!DataValidator.ValidatePassportNumber(passportNumber))
+                {
+                    Console.WriteLine("Неверный формат, повторите ввод.");
+                    continue;
+                }
+
+                // Проверка на существование клиента с таким же номером паспорта
+                if (avlTree.SearchByPassportNumber(passportNumber) != null)
+                {
+                    Console.WriteLine("Клиент с таким номером паспорта уже существует. Пожалуйста, введите другой номер.");
+                    continue;
+                }
+
+                // Если формат корректен и такого номера паспорта нет, выходим из цикла
+                break;
+            }
+
             Console.Write("Введите место и дату выдачи паспорта: ");
             string issuePlaceAndDate = Console.ReadLine();
+
             Console.Write("Введите ФИО: ");
             string fullName = Console.ReadLine();
+            while (!DataValidator.ValidateFullName(fullName))
+            {
+                Console.WriteLine("Неверный формат, повторите ввод.");
+                Console.Write("Введите ФИО: ");
+                fullName = Console.ReadLine();
+            }
+
             Console.Write("Введите год рождения: ");
-            int birthYear = int.Parse(Console.ReadLine());
+            int birthYear = DataParser.ParseYearOfBirth(Console.ReadLine());
+            while (birthYear == -1)
+            {
+                Console.WriteLine("Неверный формат, повторите ввод.");
+                Console.Write("Введите год рождения: ");
+                birthYear = DataParser.ParseYearOfBirth(Console.ReadLine());
+            }
+
             Console.Write("Введите адрес: ");
             string address = Console.ReadLine();
+            while (!DataValidator.ValidateAddress(address))
+            {
+                Console.WriteLine("Неверный формат, повторите ввод.");
+                Console.Write("Введите адрес: ");
+                address = Console.ReadLine();
+            }
 
             Client client = new Client
             {
@@ -129,10 +173,21 @@ namespace MobileOperator
             Console.WriteLine("Клиент успешно зарегистрирован.");
         }
 
+
         static void RemoveClient()
         {
+            string passportNumber;
+
             Console.Write("Введите номер паспорта клиента для удаления: ");
-            string passportNumber = Console.ReadLine();
+            passportNumber = Console.ReadLine();
+
+            // Проверка на корректность формата номера паспорта
+            while (!DataValidator.ValidatePassportNumber(passportNumber))
+            {
+                Console.WriteLine("Неверный формат, повторите ввод.");
+                Console.Write("Введите номер паспорта клиента для удаления: ");
+                passportNumber = Console.ReadLine();
+            }
 
             Client client = avlTree.SearchByPassportNumber(passportNumber);
             if (client != null)
@@ -154,8 +209,6 @@ namespace MobileOperator
                 Console.WriteLine($"Клиент с номером паспорта {passportNumber} не найден.");
             }
         }
-
-
 
 
         static void ViewAllClients()
@@ -183,19 +236,45 @@ namespace MobileOperator
 
         static void SearchClientByPassportNumber()
         {
+            string passportNumber;
+
             Console.Write("Введите номер паспорта для поиска: ");
-            string passportNumber = Console.ReadLine();
+            passportNumber = Console.ReadLine();
+
+            // Проверка на корректность формата номера паспорта
+            while (!DataValidator.ValidatePassportNumber(passportNumber))
+            {
+                Console.WriteLine("Неверный формат, повторите ввод.");
+                Console.Write("Введите номер паспорта для поиска: ");
+                passportNumber = Console.ReadLine();
+            }
 
             Client client = avlTree.SearchByPassportNumber(passportNumber);
             if (client != null)
             {
                 Console.WriteLine($"Найденный клиент: Паспорт: {client.PassportNumber}, ФИО: {client.FullName}, Адрес: {client.Address}, Место и дата выдачи: {client.IssuePlaceAndDate}, Год рождения: {client.BirthYear}");
+
+                // Поиск всех SIM-карт, выданных клиенту
+                List<SimCardIssue> simCardIssues = circularLinkedList.GetAll().FindAll(issue => issue.PassportNumber == passportNumber);
+                if (simCardIssues.Count > 0)
+                {
+                    Console.WriteLine("Выданные SIM-карты:");
+                    foreach (var issue in simCardIssues)
+                    {
+                        Console.WriteLine($"SIM-карта: {issue.SimNumber}, Дата выдачи: {issue.IssueDate}, Дата окончания действия: {issue.ExpiryDate}");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Нет выданных SIM-карт.");
+                }
             }
             else
             {
                 Console.WriteLine($"Клиент с номером паспорта {passportNumber} не найден.");
             }
         }
+
 
         static void SearchClientsByFullName()
         {
@@ -219,14 +298,48 @@ namespace MobileOperator
 
         static void AddNewSimCard()
         {
-            Console.Write("Введите номер SIM-карты (формат NNN-NNNNNNN): ");
-            string simNumber = Console.ReadLine();
+            string simNumber;
+            while (true)
+            {
+                Console.Write("Введите номер SIM-карты (формат NNN-NNNNNNN): ");
+                simNumber = Console.ReadLine();
+                // Проверка на корректность формата номера SIM-карты
+                if (!DataValidator.ValidateSimNumber(simNumber))
+                {
+                    Console.WriteLine("Неверный формат, повторите ввод.");
+                    continue;
+                }
+                // Проверка на существование SIM-карты с таким же номером
+                if (hashTable.GetSimCardByNumber(simNumber) != null)
+                {
+                    Console.WriteLine("SIM-карта с таким номером уже существует. Пожалуйста, введите другой номер.");
+                    continue;
+                }
+                // Если формат корректен и такой номер SIM-карты не существует, выходим из цикла
+                break;
+            }
+
+            string tariff;
             Console.Write("Введите тариф: ");
-            string tariff = Console.ReadLine();
+            tariff = Console.ReadLine();
+            while (!DataValidator.ValidateTariff(tariff))
+            {
+                Console.WriteLine("Неверный формат, повторите ввод.");
+                Console.Write("Введите тариф: ");
+                tariff = Console.ReadLine();
+            }
+
+            int releaseYear;
             Console.Write("Введите год выпуска: ");
-            int releaseYear = int.Parse(Console.ReadLine());
-            Console.Write("SIM-карта доступна? (да/нет): ");
-            bool isAvailable = Console.ReadLine().ToLower() == "да";
+            string releaseYearInput = Console.ReadLine();
+            while (!int.TryParse(releaseYearInput, out releaseYear) || releaseYear < 1900 || releaseYear > DateTime.Now.Year)
+            {
+                Console.WriteLine("Неверный формат, повторите ввод.");
+                Console.Write("Введите год выпуска: ");
+                releaseYearInput = Console.ReadLine();
+            }
+
+            bool isAvailable = true;
 
             SimCard simCard = new SimCard
             {
@@ -235,15 +348,21 @@ namespace MobileOperator
                 ReleaseYear = releaseYear,
                 IsAvailable = isAvailable
             };
-
             hashTable.Put(simCard);
             Console.WriteLine("SIM-карта успешно добавлена.");
         }
 
         static void RemoveSimCard()
         {
+            string simNumber;
             Console.Write("Введите номер SIM-карты для удаления: ");
-            string simNumber = Console.ReadLine();
+            simNumber = Console.ReadLine();
+            while (!DataValidator.ValidateSimNumber(simNumber))
+            {
+                Console.WriteLine("Неверный формат, повторите ввод.");
+                Console.Write("Введите номер SIM-карты для удаления: ");
+                simNumber = Console.ReadLine();
+            }
 
             SimCard removedSimCard = hashTable.RemoveSimCardByNumber(simNumber);
             if (removedSimCard != null)
@@ -281,8 +400,15 @@ namespace MobileOperator
 
         static void SearchSimCardByNumber()
         {
+            string simNumber;
             Console.Write("Введите номер SIM-карты для поиска: ");
-            string simNumber = Console.ReadLine();
+            simNumber = Console.ReadLine();
+            while (!DataValidator.ValidateSimNumber(simNumber))
+            {
+                Console.WriteLine("Неверный формат номера SIM-карты. Повторите ввод.");
+                Console.Write("Введите номер SIM-карты для поиска: ");
+                simNumber = Console.ReadLine();
+            }
 
             SimCard simCard = hashTable.GetSimCardByNumber(simNumber);
             if (simCard != null)
@@ -297,8 +423,15 @@ namespace MobileOperator
 
         static void SearchSimCardByTariff()
         {
+            string tariff;
             Console.Write("Введите тариф для поиска SIM-карт: ");
-            string tariff = Console.ReadLine();
+            tariff = Console.ReadLine();
+            while (!DataValidator.ValidateTariff(tariff))
+            {
+                Console.WriteLine("Неверный формат тарифа. Повторите ввод.");
+                Console.Write("Введите тариф для поиска SIM-карт: ");
+                tariff = Console.ReadLine();
+            }
 
             var simCards = hashTable.SearchByTariff(tariff);
             if (simCards.Count > 0)
@@ -315,31 +448,79 @@ namespace MobileOperator
             }
         }
 
+
         static void RegisterSimCardIssue()
         {
-            Console.Write("Введите номер паспорта: ");
-            string passportNumber = Console.ReadLine();
-            Console.Write("Введите номер SIM-карты: ");
-            string simNumber = Console.ReadLine();
-            Console.Write("Введите дату выдачи: ");
-            string issueDate = Console.ReadLine();
-            Console.Write("Введите дату окончания действия: ");
-            string expiryDate = Console.ReadLine();
-
-            // Проверка существования клиента в AVL-дереве
-            Client client = avlTree.SearchByPassportNumber(passportNumber);
-            if (client == null)
+            string passportNumber;
+            while (true)
             {
-                Console.WriteLine("Клиент с таким номером паспорта не найден.");
-                return;
+                Console.Write("Введите номер паспорта: ");
+                passportNumber = Console.ReadLine();
+                if (!DataValidator.ValidatePassportNumber(passportNumber))
+                {
+                    Console.WriteLine("Неверный формат номера паспорта. Повторите ввод.");
+                    continue;
+                }
+
+                // Проверка существования клиента в AVL-дереве
+                if (avlTree.SearchByPassportNumber(passportNumber) == null)
+                {
+                    Console.WriteLine("Клиент с таким номером паспорта не найден. Повторите ввод.");
+                    continue;
+                }
+
+                break; // Формат корректен и клиент существует
             }
 
-            // Проверка наличия SIM-карты
-            SimCard simCard = hashTable.GetSimCardByNumber(simNumber);
-            if (simCard == null || !simCard.IsAvailable)
+            string simNumber;
+            while (true)
             {
-                Console.WriteLine("SIM-карта недоступна для выдачи.");
-                return;
+                Console.Write("Введите номер SIM-карты: ");
+                simNumber = Console.ReadLine();
+                if (!DataValidator.ValidateSimNumber(simNumber))
+                {
+                    Console.WriteLine("Неверный формат номера SIM-карты. Повторите ввод.");
+                    continue;
+                }
+
+                // Проверка наличия SIM-карты
+                SimCard simCard = hashTable.GetSimCardByNumber(simNumber);
+                if (simCard == null || !simCard.IsAvailable)
+                {
+                    Console.WriteLine("SIM-карта недоступна для выдачи. Повторите ввод.");
+                    continue;
+                }
+
+                break; // Формат корректен и SIM-карта доступна
+            }
+
+            string issueDate;
+            Console.Write("Введите дату выдачи (дд.мм.гггг): ");
+            issueDate = Console.ReadLine();
+            while (!DataValidator.ValidateDate(issueDate))
+            {
+                Console.WriteLine("Неверный формат даты. Повторите ввод.");
+                Console.Write("Введите дату выдачи (дд.мм.гггг): ");
+                issueDate = Console.ReadLine();
+            }
+
+            string expiryDate;
+            DateTime issueDateParsed = DataParser.ParseDate(issueDate);
+            DateTime expiryDateParsed;
+            Console.Write("Введите дату окончания действия (дд.мм.гггг): ");
+            expiryDate = Console.ReadLine();
+            while (!DataValidator.ValidateDate(expiryDate) || (expiryDateParsed = DataParser.ParseDate(expiryDate)) <= issueDateParsed)
+            {
+                if (!DataValidator.ValidateDate(expiryDate))
+                {
+                    Console.WriteLine("Неверный формат даты. Повторите ввод.");
+                }
+                else
+                {
+                    Console.WriteLine("Дата окончания действия не может быть раньше или равна дате выдачи. Повторите ввод.");
+                }
+                Console.Write("Введите дату окончания действия (дд.мм.гггг): ");
+                expiryDate = Console.ReadLine();
             }
 
             SimCardIssue issue = new SimCardIssue
@@ -351,25 +532,59 @@ namespace MobileOperator
             };
 
             circularLinkedList.Add(issue);
-            simCard.IsAvailable = false;
+
+            // Обновление статуса SIM-карты
+            SimCard issuedSimCard = hashTable.GetSimCardByNumber(simNumber);
+            issuedSimCard.IsAvailable = false;
+
             Console.WriteLine("Регистрация выдачи SIM-карты успешно выполнена.");
         }
 
+
         static void RegisterSimCardReturn()
         {
-            Console.Write("Введите номер паспорта: ");
-            string passportNumber = Console.ReadLine();
-            Console.Write("Введите номер SIM-карты: ");
-            string simNumber = Console.ReadLine();
+            string passportNumber;
+            while (true)
+            {
+                Console.Write("Введите номер паспорта: ");
+                passportNumber = Console.ReadLine();
+                if (!DataValidator.ValidatePassportNumber(passportNumber))
+                {
+                    Console.WriteLine("Неверный формат номера паспорта. Повторите ввод.");
+                    continue;
+                }
+                if (avlTree.SearchByPassportNumber(passportNumber) == null)
+                {
+                    Console.WriteLine("Клиент с таким номером паспорта не найден. Повторите ввод.");
+                    continue;
+                }
+                break;
+            }
+
+            string simNumber;
+            SimCard simCard;
+            while (true)
+            {
+                Console.Write("Введите номер SIM-карты: ");
+                simNumber = Console.ReadLine();
+                if (!DataValidator.ValidateSimNumber(simNumber))
+                {
+                    Console.WriteLine("Неверный формат номера SIM-карты. Повторите ввод.");
+                    continue;
+                }
+                simCard = hashTable.GetSimCardByNumber(simNumber);
+                if (simCard == null)
+                {
+                    Console.WriteLine("SIM-карта не найдена. Повторите ввод.");
+                    continue;
+                }
+                break;
+            }
 
             bool result = circularLinkedList.Remove(passportNumber, simNumber);
             if (result)
             {
-                SimCard simCard = hashTable.GetSimCardByNumber(simNumber);
-                if (simCard != null)
-                {
-                    simCard.IsAvailable = true;
-                }
+                simCard.IsAvailable = true;
                 Console.WriteLine("Регистрация возврата SIM-карты успешно выполнена.");
             }
             else
