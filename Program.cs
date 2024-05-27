@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using MobileOperator.Models;
-using MobileOperator.Processing;
+using MobileOperator.Helpers;
 using MobileOperator.Structures;
 
 namespace MobileOperator
@@ -132,6 +130,12 @@ namespace MobileOperator
 
             Console.Write("Введите место и дату выдачи паспорта: ");
             string issuePlaceAndDate = Console.ReadLine();
+            while (!DataValidator.ValidateAddress(issuePlaceAndDate))
+            {
+                Console.WriteLine("Неверный формат, повторите ввод.");
+                Console.Write("Введите место и дату выдачи паспорта: ");
+                issuePlaceAndDate = Console.ReadLine();
+            }
 
             Console.Write("Введите ФИО: ");
             string fullName = Console.ReadLine();
@@ -723,27 +727,27 @@ namespace MobileOperator
     {
         new Client
         {
-            PassportNumber = "1234-567890",
-            IssuePlaceAndDate = "Москва, 01.01.2000",
-            FullName = "Иванов Иван Иванович",
-            BirthYear = 1980,
-            Address = "ул. Пушкина, д. 10"
+            PassportNumber = "5678-123456",
+            IssuePlaceAndDate = "Отделение УФМС России по Свердловской области в г. Екатеринбурге 15.05.2005",
+            FullName = "Кузнецов Андрей Алексеевич",
+            BirthYear = 1975,
+            Address = "г. Екатеринбург, ул. Ленина, д. 15, кв. 10"
         },
         new Client
         {
-            PassportNumber = "2345-678901",
-            IssuePlaceAndDate = "Санкт-Петербург, 02.02.2001",
-            FullName = "Петров Петр Петрович",
-            BirthYear = 1985,
-            Address = "пр. Ленина, д. 20"
+            PassportNumber = "6789-234567",
+            IssuePlaceAndDate = "Отделение УМВД России по Республике Татарстан в г. Казани 20.07.2006",
+            FullName = "Смирнов Алексей Сергеевич",
+            BirthYear = 1982,
+            Address = "г. Казань, ул. Гагарина, д. 25, кв. 5"
         },
         new Client
         {
-            PassportNumber = "3456-789012",
-            IssuePlaceAndDate = "Новосибирск, 03.03.2002",
-            FullName = "Сидоров Сидор Сидорович",
-            BirthYear = 1990,
-            Address = "ул. Советская, д. 30"
+            PassportNumber = "7890-345678",
+            IssuePlaceAndDate = "Отделение УФМС России по Нижегородской области в г. Нижнем Новгороде 10.09.2007",
+            FullName = "Михайлов Дмитрий Иванович",
+            BirthYear = 1988,
+            Address = "г. Нижний Новгород, ул. Ломоносова, д. 35, кв. 12"
         }
     };
 
@@ -751,8 +755,6 @@ namespace MobileOperator
             {
                 avlTree.Add(client);
             }
-
-            Console.WriteLine("Тестовые клиенты добавлены.");
         }
 
         static void AddTestSimCards()
@@ -763,12 +765,12 @@ namespace MobileOperator
         {
             SimNumber = "111-1111111",
             Tariff = "Basic",
-            ReleaseYear = 2020,
+            ReleaseYear = 2019,
             IsAvailable = true
         },
         new SimCard
         {
-            SimNumber = "222-2222222",
+            SimNumber = "314-1592653",
             Tariff = "Basic",
             ReleaseYear = 2021,
             IsAvailable = true
@@ -786,9 +788,6 @@ namespace MobileOperator
             {
                 hashTable.Put(simCard);
             }
-
-            Console.WriteLine("Тестовые SIM-карты добавлены.");
         }
-
     }
 }

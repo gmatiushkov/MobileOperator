@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text.RegularExpressions;
 
-namespace MobileOperator.Processing
+namespace MobileOperator.Helpers
 {
     public static class DataValidator
     {
@@ -29,7 +29,7 @@ namespace MobileOperator.Processing
         public static bool ValidateAddress(string input)
         {
             // Паттерн для адреса на кириллице с допустимыми символами ".", ",", "-"
-            string pattern = @"^[А-ЯЁа-яё\d\s"".,-]{1,256}$";
+            string pattern = @"^[А-ЯЁа-яё0-9\s"".,-]{1,256}$";
             return Regex.IsMatch(input, pattern);
         }
 

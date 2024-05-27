@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Globalization;
 
-namespace MobileOperator.Processing
+namespace MobileOperator.Helpers
 {
     public static class DataParser
     {

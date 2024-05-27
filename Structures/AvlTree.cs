@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using MobileOperator.Helpers;
 using MobileOperator.Models;
 
 namespace MobileOperator.Structures
@@ -235,8 +236,8 @@ namespace MobileOperator.Structures
             List<Client> allClients = PreOrderTraversal();
             foreach (var client in allClients)
             {
-                if ((client.FullName != null && client.FullName.IndexOf(fragment, StringComparison.OrdinalIgnoreCase) >= 0) ||
-                    (client.Address != null && client.Address.IndexOf(fragment, StringComparison.OrdinalIgnoreCase) >= 0))
+                if ((client.FullName != null && DataSearch.ContainsIgnoreCase(client.FullName, fragment)) ||
+                    (client.Address != null && DataSearch.ContainsIgnoreCase(client.Address, fragment)))
                 {
                     clients.Add(client);
                 }
